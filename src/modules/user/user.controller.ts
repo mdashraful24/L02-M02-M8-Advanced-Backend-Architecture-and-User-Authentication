@@ -25,7 +25,7 @@ const createUser = async (req: Request, res: Response) => {
 
 const getAllUsers = async (req: Request, res: Response) => {
     try {
-        const result = await userService.getAllUsersInDB();
+        const result = await userService.getAllUsersFromDB();
 
         if (result.rows.length === 0) {
             res.status(404).json({
@@ -53,9 +53,7 @@ const getSingleUser = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        const result = await pool.query(`
-            SELECT * FROM users WHERE id=$1
-        `, [id]);
+        const result = await userService.getSingleUserFromDB(id as string);
 
         if (result.rows.length === 0) {
             res.status(404).json({
@@ -81,17 +79,10 @@ const getSingleUser = async (req: Request, res: Response) => {
 
 const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, password, age, is_active } = req.body;
+    // const { name, password, age, is_active } = req.body;
 
     try {
-        const result = await pool.query(`
-            UPDATE users SET 
-            name=COALESCE($1,name), 
-            password=COALESCE($2,password), 
-            age=COALESCE($3,age), 
-            is_active=COALESCE($4,is_active) 
-            WHERE id=$5 RETURNING *
-        `, [name, password, age, is_active, id]);
+        const result = await userService.updateUserInfoDB(req.body, id as string);
 
         if (result.rows.length === 0) {
             res.status(404).json({
@@ -118,9 +109,7 @@ const deleteUser = async (req: Request, res: Response) => {
     const { email } = req.params;
 
     try {
-        const result = await pool.query(`
-            DELETE FROM users WHERE email=$1
-        `, [email]);
+        const result = await userService.deleteUserFromDB(email as string);
 
         if (result.rowCount === 0) {
             res.status(404).json({
